@@ -1,0 +1,19 @@
+相关配置
+1、Output Path 配置：
+   File -> Project Structure
+   选择 Modules ，进行右侧 Paths 设置：Use Model compile output path 指定 WEB_INF 文件夹下 classes
+2、Library
+   File -> Project Structure
+   选择 Modules ，进行右侧 Dependencies 设置：下方 "+" 点击选择 Library，添加 Java EE 6 库与 Tomcat 9.0.35库
+
+
+配置 Tomcat 服务器：
+Run -> Edit Configurations... , 点击右上方"+"，添加本地 Tomcat 服务器
+
+
+
+
+
+
+
+

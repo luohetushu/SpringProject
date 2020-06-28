@@ -1,0 +1,57 @@
+过滤器：依赖于servlet容器。在实现上基于函数回调，可以对几乎所有请求进行过滤，
+       缺点是一个过滤器实例只能在容器初始化时调用一次。
+       使用过滤器的目的是用来做一些过滤操作，获取我们想要获取的数据，
+       比如：在过滤器中修改字符编码；在过滤器中修改HttpServletRequest的一些参数，包括：过滤低俗文字、危险字符等
+    过滤器的执行顺序跟 web.xml 文件中定义的先后关系有关
+
+拦截器：依赖于web框架，在SpringMVC中就是依赖于SpringMVC框架。
+       在实现上基于Java的反射机制，属于面向切面编程（AOP）的一种运用。
+       由于拦截器是基于web框架的调用，因此可以使用Spring的依赖注入（DI）进行一些业务操作，同时一个拦截器实例在一个controller生命周期之内可以多次调用。
+       缺点是只能对controller请求进行拦截，对其他的一些比如直接访问静态资源的请求则没办法进行拦截处理
+    拦截器的执行顺序跟在 SpringMVC 的配置文件中定义的先后顺序有关
+
+SpringMVC 拦截器配置
+1、定义拦截器类，实现 org.springframework.web.servlet.HandlerInterceptor 接口
+   public interface HandlerInterceptor {
+       //在 DispatcherServlet 的控制器中的处理请求方法之前执行
+       default boolean preHandle(HttpServletRequest request,
+                                 HttpServletResponse response, Object handler) throws Exception {
+           return true;  // 如果返回为 true，则执行之后的处理方法与之后的拦截器；返回 false，则不执行
+                         // 如果返回为 true，可以使用 HttpServletRequest 和 HttpServletResponse 进行转发和重定向
+       }
+       //在 DispatcherServlet 的控制器中的处理请求方法之后，渲染视图之前执行
+       default void postHandle(HttpServletRequest request, HttpServletResponse response,
+                               Object handler, @Nullable ModelAndView modelAndView) throws Exception {
+       }
+       //在页面渲染完成返回给客户端之前执行 进行清理等收尾工作
+       default void afterCompletion(HttpServletRequest request, HttpServletResponse response,
+                                    Object handler, @Nullable Exception ex) throws Exception {
+       }
+   }
+2、在 [dispatcher]-servlet.xml 配置文件（可以自定义的，可以默认生成的）中配置拦截器
+   在根标签中添加：xmlns:mvc="http://www.springframework.org/schema/mvc"
+   <!--配置拦截器-->
+   <mvc:interceptors>
+       <!--公共拦截器，拦截所有的请求，可以配置多个-->
+       <bean name="baseInterceptor" class="com.spring.mvc.interceptor.BaseInterceptor"/>
+       <mvc:interceptor>
+           <!--mvc:mapping 可以配置多个-->
+           <!--拦截地址 /admin/*：为 /admin 及其一级子路径-->
+           <mvc:mapping path="/admin/*"/>
+           <!--拦截地址 /login/**：为 /login 及其一级子路径与多级子路径-->
+           <mvc:mapping path="/login/**"/>
+           <!--指定拦截器，拦截指定请求地址的拦截器，只能配置一个-->
+           <bean class="com.spring.mvc.interceptor.LoginInterceptor"/>
+       </mvc:interceptor>
+   </mvc:interceptors>
+
+
+
+
+
+
+
+
+
+
+

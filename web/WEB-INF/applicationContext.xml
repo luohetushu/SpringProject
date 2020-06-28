@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+       http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/aop
+       http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+
+    <!--
+        导入其他配置文件
+        classpath: 在当前项目 .class 输出路径下查找，本项目为 classes（Output Path 配置）文件夹下
+        classpath*: 不仅在当前项目 .class 输出路径下查找。 注：多 Module 时建议使用这个
+        file: 配置文件本机绝对路径 file:///Users/murongyunge/Desktop/IntelliJ/SpringProject/src/beans.xml
+        http: 配置文件服务器 url 地址
+    -->
+    <import resource="classpath:beans.xml" />
+
+    <!--Spring 实现 AOP：
+        1、将真实业务处理的方法抽象出来，定义一个抽象类或接口
+        2、实现真实业务处理类
+        3、实现公共业务类，即切面（某个关注点的模块），使之实现各种通知类型
+        4、在 .xml 文件中配置真实业务类与公共业务类
+    -->
+    <!--真实业务处理类-->
+    <bean id="userImpel" class="com.spring.mvc.impel.UserImpel"/>
+    <!--公共业务类，即切面（某个关注点的模块），实现了通知类型接口-->
+    <!--<bean id="logging" class="com.spring.mvc.proxy.Logging"/>
+    <aop:config>
+        <aop:pointcut id="pointcut" expression="execution(* com.spring.mvc.impel.*.*(..))"/>
+        <aop:advisor advice-ref="logging" pointcut-ref="pointcut"/>
+    </aop:config>-->
+
+    <!--公共业务类，即切面（某个关注点的模块），自定义-->
+    <!--<bean id="security" class="com.spring.mvc.proxy.Security"/>
+    <aop:config>
+        <aop:aspect ref="security">
+            <aop:pointcut id="pointcut" expression="execution(* com.spring.mvc.impel.*.*(..))"/>
+            <aop:before method="before" pointcut-ref="pointcut"/>
+            <aop:after method="after" pointcut-ref="pointcut"/>
+        </aop:aspect>
+    </aop:config>-->
+
+    <!--公共业务类，即切面（某个关注点的模块），使用注解的方式-->
+    <bean id="cache" class="com.spring.mvc.proxy.CacheProxy"/>
+    <aop:aspectj-autoproxy/>
+
+
+</beans>

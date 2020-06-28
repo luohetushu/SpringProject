@@ -1,0 +1,187 @@
+Spring: 轻量型框架
+    Spring 框架的目标是使 J2EE 开发变得更容易使用，通过启用基于 POJO 编程模型来促进良好的编程实践
+
+Spring 体系结构：
+    Core Container 核心容器：组成模块与依赖关系：
+            spring-core ----> commons-logging
+            spring-beans ----> spring-core
+            spring-expression ----> spring-core
+                               ----> spring-core
+            spring-context     ----> spring-beans
+                               ----> spring-aop
+                               ----> spring-expression
+
+        spring-core：提供框架的基本组成部分，包括 IoC 和依赖注入功能
+        spring-beans：提供 BeanFactory，工厂模式 xml 文件配置实现，移除了编码式单例的需要，把配置和依赖从实际编码逻辑中解耦
+        spring-context：以一种类似于 JNDI 注册的方式访问对象，关键类 org.springframework.context.ApplicationContext
+        spring-context-support：提供了对第三方库集成到 Spring 上下文的支持，
+            比如缓存（EhCache, Guava, JCache）、邮件（JavaMail）、调度（CommonJ, Quartz）、模板引擎（FreeMarker, JasperReports, Velocity）
+        spring-expression（SpEL：Spring 表达式语言 Spring Expression Language）
+            提供了强大的表达式语言，用于在运行时查询和操作对象图
+    数据访问与继承：组成模块：
+        JDBC（Java Database Connectivity）：提供 JDBC 抽象层，消除冗长的 JDBC 编码和对数据库供应商特定错误代码的解析
+        ORM（Object Relational Mapping）：提供了对流行的对象关系映射 API 的集成，包括 JPA、JDO 和 Hibernate 等
+        OXM（Object XML Mapping）：提供了对 OXM 实现的支持，比如 JAXB、Castor、XML Beans、JiBX、XStream 等
+        JMS（Java Message Service）：包含生产（produce）和消费（consume）消息的功能。集成于 spring-messaging 模块
+        事务（Transaction）：为实现特殊接口类及所有的 POJO 支持编程式和声明式事务管理。
+            编程式事务：需要手动实现 beginTransaction()、commit()、rollback() 等事务管理方法
+            声明式事务：通过注解或配置由 Spring 自动处理
+    Web(MVC/Remoting) 层：组成模块：
+        Web：提供面向 web 的基本功能和应用上下文，如多部分（multipart）文件上传功能、使用 Servlet 监听器初始化 IoC 容器等。
+             包括 HTTP 客户端以及 Spring 远程调用中与 web 相关的部分
+        Web-MVC：为 web 应用提供了模型视图控制（MVC），实现 REST Web服务。
+             使领域模型代码和 web 表单完全地分离，且与 Spring 框架的其它所有功能进行集成
+        Web-Socket：为 WebSocket-based 提供支持，在 web 应用程序中提供了客户端和服务器端之间通信的两种方式
+        Web-Portlet：提供了用于 Portlet 环境的 MVC 实现，并反射 spring-webmvc 模块的功能
+    其他模块：AOP 模块：实现面向切面编程，允许定义方法拦截器和切入点对代码进行干净地解耦，从而使实现功能的代码彻底的解耦出来
+                      使用源码级的元数据，可以用类似于.Net属性的方式合并行为信息到代码中
+            Aspects 模块：提供与 AspectJ 的集成，是一个功能强大且成熟的面向切面编程（AOP）框架
+            Instrumentation 模块：在一定的应用服务器中提供了类 instrumentation 的支持和类加载器的实现
+            Messaging 模块：为 STOMP 提供了支持作为在应用程序中 WebSocket 子协议的使用。
+                           也支持一个注解编程模型，为了选路和处理来自 WebSocket 客户端的 STOMP 信息
+            test：测试模块：支持对具有 JUnit 或 TestNG 框架的 Spring 组件的测试
+
+Spring Bean 作用域：当在 Spring 中定义一个 bean 时，你必须声明该 bean 的作用域的选项 scope
+    singleton：单例，默认值，在spring IoC容器仅存在一个Bean实例，且所有对bean的请求，只要id与该bean定义相匹配，则只会返回bean的同一实例
+    prototype：每次从容器中调用Bean时，都返回一个新的实例，即每次调用getBean()时，相当于执行newXxxBean()
+    request：每次HTTP请求都会创建一个新的 Bean，该作用域仅适用于WebApplicationContext环境
+    session：同一个HTTP Session共享一个 Bean，不同Session使用不同的Bean，仅适用于WebApplicationContext环境
+
+Spring Bean 自动装配：为简化 spring 配置，可以在配置 bean 的时候设置 autowire 属性
+   byName: 通过成员属性名（set 方法为 set + 属性名首字母大写）来查找相应的 bean（需要装配的 bean 的 id 或 name 为该属性名）
+   byType：根据成员属性类型来查找相应的 bean，todo 注：在 .xml 中同类型的 bean 只能配置一个
+   constructor：当使用构造器注入的方式，可使用该属性
+
+控制反转（IoC：Inversion of Control）：用来减低计算机代码之间的耦合度
+    通过控制反转，对象在被创建的时候，由一个调控系统内所有对象的外界实体将其所依赖的对象的引用传递给该对象
+    实现方式：依赖注入（DI：Dependency Injection）：
+                依赖：指 JavaBean 类的创建依赖于 IoC 容器
+                注入：指 JavaBean 类依赖资源（成员属性）由 IoC 容器设置与配置
+                     注入方式：1、构造器注入
+                                 <!--注入方式，构造器方式注入-->
+                                 <bean id="kamenRider" class="com.spring.mvc.beans.KamenRider">
+                                     <!--JavaBean 类 内部成员属性设置-->
+                                     <!--ref 引用其他配置的类-->
+                                     <constructor-arg name="heiseiRider" ref="heiseiRider1"/>
+                                 </bean>
+                              2、setter 方法注入，要求 JavaBean 类成员属性有 set 方法（命名为 set + 属性首字母大写）
+                                 常量注入：如：<property name="maleOwner" value="泊·进之介"/>
+                                             <property name="femaleOwner" value="诗岛雾子"/>
+                                 bean注入：如：<property name="heiseiRider" ref="heiseiRider1"/>
+                                 数组注入：如：<!--注入方式，数组注入-->
+                                             <property name="sideRiders">
+                                                <array>
+                                                    <value type="java.lang.String">Mach</value>
+                                                    <value type="java.lang.String">Chase</value>
+                                                </array>
+                                             </property>
+                                 list/set 注入：如：<!--注入方式，list 或者 set 注入-->
+                                                   <property name="enemies">
+                                                       <list 或者 set>
+                                                           <value type="java.lang.String">Death</value>
+                                                           <value type="java.lang.String">Heart</value>
+                                                           <value type="java.lang.String">Brain</value>
+                                                           <value type="java.lang.String">Medic</value>
+                                                           <value type="java.lang.String">Angle</value>
+                                                       </list 或者 set>
+                                                   </property>
+                                 map 注入：如：<!--注入方式，map 注入-->
+                                              <property name="enemyNums">
+                                                  <map>
+                                                      <entry key="Heart" value="001"/>
+                                                      <entry>
+                                                          <key><value>Brain</value></key>
+                                                          <value type="java.lang.Integer">2</value>
+                                                      </entry>
+                                                      <entry key="Medic">
+                                                          <value type="java.lang.Integer">9</value>
+                                                      </entry>
+                                                  </map>
+                                              </property>
+                                 空注入：<property name="heiseiRider"><null/></property>
+                                 Properties 注入：如：<!--注入方式，properties 注入-->
+                                                     <property name="infos">
+                                                         <props>
+                                                             <prop key="videoTime">2015-2016</prop>
+                                                             <prop key="episodes">48</prop>
+                                                         </props>
+                                                     </property>
+                                 p-namespace 注入：如：xmlns:p="http://www.springframework.org/schema/p"
+                                                      <!--注入方式，p-namespace 注入-->
+                                                      <bean id="heiseiRider3" class="com.spring.mvc.beans.HeiseiRider"
+                                                            p:maleOwner="火野映司" p:femaleOwner="泉比奈"/>
+                                 c-namespace 注入：要求 JavaBean 类中需要有对应参数的构造方法
+                                     如：<!--注入方式，c-namespace 注入-->
+                                        <bean id="kamenRider" class="com.spring.mvc.beans.KamenRider" c:heiseiRider-ref="heiseiRider1">
+            依赖查找（DL：Dependency Lookup）：
+
+
+
+面向切面编程（AOP：Aspect Oriented Programming）：通过预编译方式和运行期间动态代理实现程序功能的统一维护的一种技术
+    利用AOP可以对业务逻辑的各个部分进行隔离，从而使得业务逻辑各部分之间的耦合度降低，提高程序的可重用性，同时提高了开发的效率
+    1、真实业务与公共业务的分离，公共业务由代理实现（实现业务的分工）
+        关注点：即代理中公共业务实现的功能，比如日记、安全、缓存、事务、捕捉异常等
+        切面：关注点的模块化，比如事务管理模块、日记模块等，切面可以通过 基于模式 或 基于@Aspect注解 的方式实现
+        连接点：程序执行过程中某个关键的点，比如调用某方法或处理某异常时。在 Spring AOP 中，一个连接点就是一个方法的执行
+        通知：在切面的某个特定连接点上的执行动作。许多 AOP 框架都是以 拦截器 做通知模型，并维护一个连接点为中心的拦截器链
+            通知类型：前置before通知advice：在某连接点之前执行的通知
+                     后置after通知：在某连接点正常完成后的通知
+                     异常通知：在方法抛出异常退出时执行的通知
+                     最终通知：在某连接点退出时执行的通知（不论正常结束或异常退出）
+                     环绕around通知：包围一个连接点的通知
+        切入点：匹配连接点的断言。AOP 的核心是切入点表达式如何与连接点匹配。Spring 默认使用 Aspect 切入点语法
+        引入：Spring 允许引入一个新的接口或实现，来给一个类声明额外的方法或属性，也称连接类型声明
+        目标对象：被一个或多个切面通知的对象，即一个被代理的对象
+        AOP 代理：在 Spring 代理中，AOP 代理可以通过 JDK动态代理 或 CGLIB代理 实现
+        织入 Waving：把切面连接到其他应用程序类或对象上，并创建一个被通知对象，在编译时、类加载时或运行时完成。Spring AOP 框架在运行时完成织入
+    2、提供声明式服务
+    3、允许用户实现自定义切面
+
+
+Spring 实现 面向切面编程（AOP：Aspect Oriented Programming）：
+1、将真实业务处理的方法抽象出来，定义一个抽象类或接口
+2、实现真实业务处理类
+3、实现公共业务类，即切面（某个关注点的模块），
+   方式一：使之实现各种通知类型，根据不同的通知类型来实现公共业务类方法在真实业务方法调用前后或者抛出异常时执行
+   方式二：自定义 before、after、around 等方法，然后在 .xml 文件中配置
+   方式三：使用注解的方式
+4、在 .xml 文件中配置真实业务类与公共业务类
+   头文件：<beans xmlns="http://www.springframework.org/schema/beans"
+          xmlns:c="http://www.springframework.org/schema/c"   //c-namespace 注入
+          xmlns:p="http://www.springframework.org/schema/p"    //p-namespace 注入
+          xmlns:aop="http://www.springframework.org/schema/aop"  // AOP 实现
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+          http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd"></beans>
+   配置： todo 需要导入 aspectjrt.jar aspectjweaver.jar
+       <!--真实业务处理类-->
+       <bean id="userImpel" class="com.spring.mvc.impel.UserImpel"/>
+       公共业务类配置，方式一：<!--公共业务类，即切面（某个关注点的模块），实现了通知类型接口-->
+                           <bean id="logging" class="com.spring.mvc.proxy.Logging"/>
+                           <aop:config>
+                               <aop:pointcut id="pointcut" expression="execution(* com.spring.mvc.impel.*.*(..))"/>
+                               <aop:advisor advice-ref="logging" pointcut-ref="pointcut"/>
+                           </aop:config>
+                    方式二：<!--公共业务类，即切面（某个关注点的模块），自定义-->
+                            <bean id="security" class="com.spring.mvc.proxy.Security"/>
+                            <aop:config>
+                                <aop:aspect ref="security">
+                                    <aop:pointcut id="pointcut" expression="execution(* com.spring.mvc.impel.*.*(..))"/>
+                                    <aop:before method="before" pointcut-ref="pointcut"/>
+                                    <aop:after method="after" pointcut-ref="pointcut"/>
+                                </aop:aspect>
+                            </aop:config>
+                    方式三：<!--公共业务类，即切面（某个关注点的模块），使用注解的方式-->
+                            <bean id="cache" class="com.spring.mvc.proxy.CacheProxy"/>
+                            <aop:aspectj-autoproxy/>
+
+
+
+
+
+
+
+
+
+
+

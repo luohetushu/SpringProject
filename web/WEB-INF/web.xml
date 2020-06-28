@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
+         version="4.0">
+
+    <!--Spring 配置文件与监听器配置-->
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>/WEB-INF/applicationContext.xml</param-value>
+    </context-param>
+    <listener>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+    </listener>
+
+    <!--过滤器配置，过滤器，随服务器启动创建或关闭销毁-->
+    <!--全站编码过滤器-->
+    <filter>
+        <filter-name>EncodingFilter</filter-name>
+        <filter-class>com.spring.mvc.filter.EncodingFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>EncodingFilter</filter-name>
+        <url-pattern>/*</url-pattern> <!--需要进行过滤（拦截）的客户端请求的 url 地址-->
+        <dispatcher>REQUEST</dispatcher>
+        <dispatcher>FORWARD</dispatcher>
+        <dispatcher>INCLUDE</dispatcher>
+        <dispatcher>ERROR</dispatcher>
+    </filter-mapping>
+
+    <!--配置 SpringMVC 的 Servlet 分发器-->
+    <servlet>
+        <servlet-name>dispatcher</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <init-param>
+            <!--实现 WebApplicationContext 接口的类，当前 Servlet 用它来创建上下文，默认使用 XmlWebApplicationContext
+            <param-name>contextClass</param-name>
+            <param-value></param-value>-->
+
+            <!--传给上下文实例（由 contextClass 指定）的字符串，用来指定上下文的位置-->
+            <!--可以用来指向自定义的 [dispatcher]-servlet.xml 配置文件-->
+            <param-name>contextConfigLocation</param-name>
+            <!--classpath: 在当前项目 .class 输出路径下查找，本项目为 classes（Output Path 配置）文件夹下
+                classpath*: 不仅在当前项目 .class 输出路径下查找。 注：多 Module 时建议使用这个-->
+            <param-value>classpath:dispat-servlet-cus.xml</param-value>
+
+            <!-- WebApplicationContext 命名空间：默认值为 [dispatcher]-servlet
+            <param-name>namespace</param-name>
+            <param-value></param-value>-->
+        </init-param>
+        <!--默认情况下，tomcat 等服务器在收到 Servlet 第一次请求时才创建 Servlet 对象-->
+        <!--在 tomcat 等服务器启动时就创建 Servlet 对象，设置非负整数-->
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>dispatcher</servlet-name>
+        <url-pattern>*.form</url-pattern>  <!--匹配 form 后缀，可以自定义后缀-->
+    </servlet-mapping>
+
+</web-app>

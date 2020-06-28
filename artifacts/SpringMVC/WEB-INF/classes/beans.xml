@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:c="http://www.springframework.org/schema/c"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!--JavaBean 类，无参构造方法 配置形式-->
+    <!--id 是 bean 唯一标识符，如果没有设置 id，则 name 成为 bean 唯一标识符；
+        如果设置有 id，则 name 成为 bean 别名，可以设置多个别名，使用空格或逗号或分号隔离；-->
+    <!--如果没有配置 id 和 name，那么可以通过 <T> T getBean(Class<T> var1) throws BeansException;
+        方法获取 JavaBean 类对象，但此时要求该类只配置一次-->
+    <!--Spring Bean 作用域：scope
+        singleton：单例，默认值，在spring IoC容器仅存在一个Bean实例，且所有对bean的请求，只要id与该bean定义相匹配，则只会返回bean的同一实例
+        prototype：每次从容器中调用Bean时，都返回一个新的实例，即每次调用getBean()时，相当于执行newXxxBean()
+        request：每次HTTP请求都会创建一个新的 Bean，该作用域仅适用于WebApplicationContext环境
+        session：同一个HTTP Session共享一个 Bean，不同Session使用不同的Bean，仅适用于WebApplicationContext环境
+    -->
+    <bean id="heiseiRider1" name="wizard mahou" class="com.spring.mvc.beans.HeiseiRider">
+        <!--JavaBean 类 内部成员属性设置-->
+        <property name="maleOwner" value="操真晴人"/>
+        <property name="femaleOwner" value="笛木曆美"/>
+    </bean>
+
+    <!--JavaBean 类，无参构造方法 配置形式-->
+    <!--注入方式，p-namespace 注入-->
+    <bean id="heiseiRider3" class="com.spring.mvc.beans.HeiseiRider"
+          p:maleOwner="火野映司" p:femaleOwner="泉比奈"/>
+
+    <!--设置别名-->
+    <alias name="heiseiRider1" alias="heiseiRider"/>
+
+    <!--JavaBean 类，有参构造方法 配置形式-->
+    <bean name="heiseiRider2" class="com.spring.mvc.beans.HeiseiRider">
+        <!--构造方法参数配置，通过参数 index 下标配置，以 0 开始-->
+        <constructor-arg index="0" value="Drive"/>
+        <!--构造方法参数配置，通过参数名配置-->
+        <constructor-arg name="count" value="3"/>
+        <!--构造方法参数配置，通过参数类型配置，如果两个参数类型不一致，配置时可以不按参数顺序配置-->
+        <constructor-arg type="java.lang.String" value="2015-09-01"/>
+        <property name="maleOwner" value="泊·进之介"/>
+        <property name="femaleOwner" value="诗岛雾子"/>
+        <!--注入方式，数组注入-->
+        <property name="sideRiders">
+            <array>
+                <value type="java.lang.String">Mach</value>
+                <value type="java.lang.String">Chase</value>
+            </array>
+        </property>
+        <!--注入方式，list 注入-->
+        <property name="enemies">
+            <list>
+                <value type="java.lang.String">Death</value>
+                <value type="java.lang.String">Heart</value>
+                <value type="java.lang.String">Brain</value>
+                <value type="java.lang.String">Medic</value>
+                <value type="java.lang.String">Angle</value>
+            </list>
+        </property>
+        <!--注入方式，map 注入-->
+        <property name="enemyNums">
+            <map>
+                <entry key="Heart" value="001"/>
+                <entry>
+                    <key><value>Brain</value></key>
+                    <value type="java.lang.Integer">2</value>
+                </entry>
+                <entry key="Medic">
+                    <value type="java.lang.Integer">9</value>
+                </entry>
+            </map>
+        </property>
+        <!--注入方式，properties 注入-->
+        <property name="infos">
+            <props>
+                <prop key="videoTime">2015-2016</prop>
+                <prop key="episodes">48</prop>
+            </props>
+        </property>
+    </bean>
+
+    <!--使用静态工厂类获取 JavaBean 类对象-->
+    <bean name="staticFactory1" class="com.spring.mvc.factory.StaticFactory" factory-method="newInstance">
+        <constructor-arg type="java.lang.String" value="com.spring.mvc.beans.HeiseiRider"/>
+    </bean>
+
+    <!--使用动态工厂类获取 JavaBean 类对象-->
+    <bean id="dynamicFactory" class="com.spring.mvc.factory.DynamicFactory"/>
+    <bean id="staticFactory2" factory-bean="dynamicFactory" factory-method="newInstance">
+        <constructor-arg name="className" value="com.spring.mvc.beans.HeiseiRider"/>
+    </bean>
+
+    <!--JavaBean 类，无参构造方法 配置形式-->
+    <!--注入方式，c-namespace 注入-->
+    <bean id="kamenRider" class="com.spring.mvc.beans.KamenRider" c:heiseiRider-ref="heiseiRider1">
+        <!--JavaBean 类 内部成员属性设置-->
+        <!--注入方式，构造器注入-->
+        <!--ref 引用其他配置的类-->
+        <!--<constructor-arg name="heiseiRider" ref="heiseiRider1"/>-->
+        <!--注入方式，bean 注入-->
+        <!--<property name="heiseiRider" ref="heiseiRider1"/>-->
+        <!--注入方式，null 注入-->
+        <!--<property name="heiseiRider"><null/></property>-->
+    </bean>
+
+
+</beans>

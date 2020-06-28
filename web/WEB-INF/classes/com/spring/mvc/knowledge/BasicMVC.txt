@@ -1,0 +1,179 @@
+使用 Spring 进行 WEB 开发时，可以选择使用 Spring 的 SpringMVC 框架或集成其他 MVC 开发框架，如 Struts2 等
+
+MVC 框架：Model View Controller，即模型-视图-控制器
+    Model（模型）：是 Web 应用中用于处理数据逻辑的部分，包括Service层和Dao层；
+                  Service 层用于和数据库联动，放置业务逻辑代码，处理数据库的增删改查，
+                  Dao 层用于放各种接口，以备调用； //DAO（Data Access Object）：数据访问对象
+    View（视图）：是 Web 应用中处理响应给客户的页面的部分，例如 html 静态页面，jsp 动态页面
+                 通常视图是依据模型数据来创建的
+    Controller（控制器）：在 Web 应用中，是 Servlet，或者 SpringMVC 框架中加了注解 @Controller 的方法（一个方法相当于一个对应的 Servlet）
+
+MVC 框架作用：
+   1、将请求 url 映射到 java 类（Servlet 类）或方法（加了注解 @Controller 的方法）
+   2、封装用户提交的数据
+   3、处理请求——调用相关业务处理（Service 层）——封装响应的数据
+   4、将响应的数据进行页面的渲染（ html 静态页面，jsp 动态页面、freemarker 等）
+
+SpringNVC 框架：一个轻量级的、基于请求响应的 MVC 框架
+   步骤：1、导入相关 jar 包（IntelliJ 新建 SpringMVC 自动导入）
+        2、在 web.xml 文件中配置 SpringMVC 的 Servlet 分发器
+           <!--配置 SpringMVC 的 Servlet 分发器-->
+           <servlet>
+               <servlet-name>dispatcher</servlet-name>
+               <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+               <!--默认情况下，tomcat 等服务器在收到 Servlet 第一次请求时才创建 Servlet 对象-->
+               <!--在 tomcat 等服务器启动时就创建 Servlet 对象，todo 设置非负整数-->
+               <load-on-startup>1</load-on-startup>
+           </servlet>
+           <servlet-mapping>
+               <servlet-name>dispatcher</servlet-name>
+               <url-pattern>*.form</url-pattern>  <!--匹配 form 后缀，可以自定义后缀-->
+           </servlet-mapping>
+        3、在 WEB-INF 下创建 [dispatcher]-servlet.xml 配置文件（（IntelliJ 新建 SpringMVC 自动创建）
+        4、编写控制器类，用于处理请求，并封装响应到视图的数据
+           方式一：通过实现特定的接口：org.springframework.web.servlet.mvc.Controller
+                       @FunctionalInterface
+                       public interface Controller {
+                           @Nullable
+                           ModelAndView handleRequest(HttpServletRequest request, HttpServletResponse response) throws Exception;
+                       }
+                  并覆写相应的方法：
+           方式二：使用注解的方式，在控制器类上添加注解 @Controller，
+                  在类中的相应方法上添加 @RequestMapping("value", "params")  //请求地址与参数
+                   如：@RequestMapping(value = {"/annotate.form"}) 或者 @RequestMapping(value = "/annotate.form")
+                      或者 @RequestMapping("/annotate.form")
+                   todo 需要导入 spring-aop jar 包
+        5、配置 [dispatcher]-servlet.xml 配置文件：（（IntelliJ 新建 SpringMVC 自动创建）
+           <!--配置 HandlerMapping -->
+           <bean class="org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping"/>
+           <!--配置 HandlerAdapter，用于适配请求地址后缀，此处的 .form ，如果配置了适配器，后缀可以省略 -->
+           <bean class="org.springframework.web.servlet.mvc.SimpleControllerHandlerAdapter"/>
+           <!--配置视图渲染器，.jsp 文件-->
+           <bean id="jspViewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+               <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
+               <!--配置视图文件路径-->
+               <property name="prefix" value="/WEB-INF/jsp/"/>
+               <!--配置视图文件后缀名-->
+               <property name="suffix" value=".jsp"/>
+           </bean>
+           <!--配置请求与处理 todo name 属性值后缀需要匹配 Spring 分发器在 web.xml 中的 url 匹配设置-->
+           <bean name="/hello.form" class="com.spring.mvc.controller.HelloController"/>
+   自定义 [dispatcher]-servlet.xml 配置文件，todo 需要在 web.xml 中的 dispatcher 中设置初始化参数
+        <init-param>
+            <!--实现 WebApplicationContext 接口的类，当前 Servlet 用它来创建上下文，默认使用 XmlWebApplicationContext
+            <param-name>contextClass</param-name>
+            <param-value></param-value>-->
+
+            // todo 如果这里设置了 contextConfigLocation ，则配置文件为自定义的 dispat-servlet-cus.xml；
+                    如果未设置，则配置文件为默认生成的 dispatcher-servlet.xml
+            <!--传给上下文实例（由 contextClass 指定）的字符串，用来指定上下文的位置-->
+            <!--可以用来指向自定义的 [dispatcher]-servlet.xml 配置文件-->
+            <param-name>contextConfigLocation</param-name>
+            <!--classpath: 在当前项目 .class 输出路径下查找，本项目为 classes（Output Path 配置）文件夹下
+                classpath*: 不仅在当前项目 .class 输出路径下查找。 注：多 Module 时建议使用这个-->
+            <param-value>classpath:dispat-servlet-cus.xml</param-value>
+
+            <!-- WebApplicationContext 命名空间：默认值为 [dispatcher]-servlet
+            <param-name>namespace</param-name>
+            <param-value></param-value>-->
+        </init-param>
+        自定义 [dispatcher]-servlet.xml 配置文件：
+            <!--配置视图渲染器，.jsp 文件-->
+            <bean id="jspViewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+                <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
+                <!--配置视图文件路径-->
+                <property name="prefix" value="/WEB-INF/jsp/"/>
+                <!--配置视图文件后缀名-->
+                <property name="suffix" value=".jsp"/>
+            </bean>
+            <!--设置扫描注解控制器-->
+            <context:component-scan base-package="com.spring.mvc.controller"/>
+
+
+控制器 Controller 配置汇总：
+1、URL 对应 Bean
+  Bean 为实现 org.springframework.web.servlet.mvc.Controller 接口的类  // todo 思考，用注解的类能不能这样配置呢
+  同时需要在 [dispatcher]-servlet.xml 配置文件设置：
+      <!--配置 HandlerMapping -->
+      <bean class="org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping"/>
+      <!--配置 HandlerAdapter，用于适配请求地址后缀，此处的 .form ，如果配置了适配器，后缀可以省略 -->
+      <bean class="org.springframework.web.servlet.mvc.SimpleControllerHandlerAdapter"/>
+      <!--配置请求与处理 todo name 属性值后缀需要匹配 Spring 分发器在 web.xml 中的 url 匹配设置-->
+      <bean name="/hello.form" class="com.spring.mvc.controller.HelloController"/>
+  该方式为当用户请求 /hello.form 时，会寻找 id 为 "/hello.form" 的 Bean，该类方式仅使用小型应用系统
+2、为 URl 分配 Bean
+  Bean 为实现 org.springframework.web.servlet.mvc.Controller 接口的类
+  同时需要在 [dispatcher]-servlet.xml 配置文件设置：
+      <!--配置 HandlerMapping，最常用的映射配置方式 -->
+      <bean class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
+          <property name="mappings">
+              <props>
+                  <!--key 为 请求地址 url 的请求名，value 对应控制器类的 id-->
+                  <prop key="/hello*.form">helloController</prop>
+                  <prop key="/url.form">urlController</prop>
+              </props>
+          </property>
+      </bean>
+      <!--配置请求与处理-->
+      <bean id="helloController" class="com.spring.mvc.controller.HelloController"/>
+      <bean id="urlController" class="com.spring.mvc.controller.UrlController"/>
+  此类配置还可以使用通配符，访问 /hello.form 时，Spring 会把请求分配给 helloController 进行处理
+3、使用注解的方式
+  在控制器类上添加注解 @Controller，在类中的相应方法上添加 @RequestMapping("value", "params")  //请求地址与参数
+  todo 同时可以在控制器类上添加父路径，那么该类中的所有请求与转发的地址都需要带上该父路径
+       如：@Controller
+          @RequestMapping("/admin")
+          public class ParentController{
+              @RequestMapping("/forward.form")   //只有请求 /admin/forward.form 才会调用该方法
+              public String forward(){
+                   return "index.jsp";     // 转发的地址为 /admin/index.jsp
+                   //如果此处的转发页面前有 return "/index.jsp"; 则转发的地址与父路径无关，为 /index.jsp
+              }
+          }
+  同时需要在 [dispatcher]-servlet.xml 配置文件设置：
+      在根标签中添加：xmlns:context="http://www.springframework.org/schema/context"
+      <!--设置扫描注解控制器-->
+      <context:component-scan base-package="com.spring.mvc.controller"/>
+
+
+控制器中响应结果跳转方式：todo 详见 com.spring.mvc.controller.AnnotateController
+1、设置返回值 ModelAndView，根据 ModelAndView 的 viewName 与 [dispatcher]-servlet.xml 配置文件中视图渲染器的前缀和后缀名
+   转发 到指定页面
+   页面 url 地址为：视图渲染器的前缀名 + ModelAndView 的 viewName + 视图渲染器的后缀名
+2、不设置任何返回值，在处理方法中自定义跳转的页面
+3、设置返回值 String，使用 SpringMVC 方式进行重定向与转发
+   注：转发 实现与 [dispatcher]-servlet.xml 配置文件中是否配置视图渲染器有关
+      重定向 实现与 [dispatcher]-servlet.xml 配置文件中是否配置视图渲染器无关
+
+控制器中获取请求参数的方式：todo 详见 com.spring.mvc.controller.AnnotateController
+1、处理请求的方法参数，与请求地址的参数名一致才可用来获取参数值
+2、进行参数注解的方式，如：@RequestParam("paramName") String name，要求注解值与请求地址的参数名一致
+3、使用 javaBean 类对象作为请求方法的参数，要求请求地址的参数名与对象的成员属性名一致
+
+控制器类中封装响应到视图的数据，ModeAndView 与 ModelMap
+    相同点：都可以用来封装响应到视图的数据，数据保存在 request 域（requestScope）中
+    不同点：ModelMap 对象必须作为控制器类中处理请求方法的参数，而不能在方法体中定义；不一定需要在 [dispatcher]-servlet.xml 配置文件设置视图渲染器
+           ModeAndView 在控制器类中处理请求方法体中定义，且作为方法的返回值，可以设置跳转的页面，
+                       需要在 [dispatcher]-servlet.xml 配置文件设置视图渲染器
+
+控制器类中，定义Restful 风格的 url：todo 在请求该地址时，需要设有 {} 中的 PathVariable
+    @RequestMapping("/{request1}/restful/{request2}.form")
+    public String restful(@PathVariable String request1, @PathVariable String request2){
+        System.out.println("req1 = " + request1);
+        System.out.println("req2 = " + request2);
+        return "hello";  //todo 要求 [dispatcher]-servlet.xml 配置文件中有配置视图渲染器
+    }
+
+启动本地 tomcat 服务器后，请求地址：http://localhost:8090/SpringMVC/hello.form：
+报错问题一：NoClassDefFoundError: javax/servlet/jsp/jstl/core/Config
+          解决：下载 jakarta-taglibs-standard-1.1.2.zip，将 standard.jar 和 jstl.jar 放入 tomcat 下的 lib 内，并重启tomcat
+
+
+
+
+
+
+
+
+
+

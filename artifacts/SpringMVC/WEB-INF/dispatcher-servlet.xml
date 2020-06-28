@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       https://www.springframework.org/schema/context/spring-context.xsd">
+
+    <!--配置视图渲染器，.jsp 文件-->
+    <bean id="jspViewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
+        <!--配置视图文件路径-->
+        <property name="prefix" value="/WEB-INF/jsp/"/>
+        <!--配置视图文件后缀名-->
+        <property name="suffix" value=".jsp"/>
+    </bean>
+
+    <!--配置 HandlerMapping -->
+    <bean class="org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping"/>
+
+    <!--配置 HandlerAdapter，用于适配请求地址后缀，此处的 .form ，如果配置了适配器，后缀可以省略 -->
+    <bean class="org.springframework.web.servlet.mvc.SimpleControllerHandlerAdapter"/>
+    <!--配置请求与处理-->
+    <bean name="/hello.form" class="com.spring.mvc.controller.HelloController"/>
+
+
+</beans>
